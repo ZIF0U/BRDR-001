@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bordereau Manager</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- Login Screen -->
+        <div id="login-screen" class="screen active">
+            <div class="login-container">
+                <div class="login-card">
+                    <div class="login-header">
+                        <i class="fas fa-file-invoice"></i>
+                        <h1>Bordereau Manager</h1>
+                        <p>Enter your credentials to access the application</p>
+                    </div>
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <div class="input-group">
+                                <i class="fas fa-user"></i>
+                                <input type="text" id="username" placeholder="Enter your username" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <div class="input-group">
+                                <i class="fas fa-lock"></i>
+                                <input type="password" id="password" placeholder="Enter your password" required>
+                            </div>
+                        </div>
+                        <div id="login-error" class="error-message"></div>
+                        <button type="submit" class="btn btn-primary">Login</button>
+                        <div class="demo-info">Demo: Use password "admin" or "password"</div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main App -->
+        <div id="main-screen" class="screen">
+            <!-- Header -->
+            <header class="app-header">
+                <div class="header-left">
+                    <i class="fas fa-file-invoice"></i>
+                    <div class="header-info">
+                        <h1>Bordereau Manager</h1>
+                        <p>Welcome, <span id="current-user"></span></p>
+                    </div>
+                </div>
+                <button id="logout-btn" class="btn btn-outline">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </header>
+
+            <!-- Navigation Tabs -->
+            <nav class="nav-tabs">
+                <button class="tab-btn active" data-tab="management">
+                    <i class="fas fa-file-invoice"></i>
+                    Bordereau Management
+                </button>
+                <button class="tab-btn" data-tab="history">
+                    <i class="fas fa-history"></i>
+                    History
+                </button>
+            </nav>
+
+            <!-- Tab Content -->
+            <main class="tab-content">
+                <!-- Bordereau Management Tab -->
+                <div id="management-tab" class="tab-pane active">
+                    <div class="tab-header">
+                        <h2>Bordereau Management</h2>
+                        <div class="action-buttons">
+                            <button id="new-bordereau-btn" class="btn btn-round" title="New Bordereau">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button id="add-cheque-btn" class="btn btn-round" title="Add Cheque" style="display: none;">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button id="save-bordereau-btn" class="btn btn-outline" style="display: none;">
+                                <i class="fas fa-save"></i>
+                                Save Bordereau
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="bordereau-content">
+                        <div id="no-bordereau" class="empty-state">
+                            <i class="fas fa-file-invoice"></i>
+                            <h3>No Bordereau Selected</h3>
+                            <p>Create a new Bordereau to get started</p>
+                            <button id="create-bordereau-btn" class="btn btn-primary">
+                                <i class="fas fa-plus"></i>
+                                Create New Bordereau
+                            </button>
+                        </div>
+
+                        <div id="current-bordereau" style="display: none;">
+                            <div class="bordereau-info">
+                                <h3 id="bordereau-title"></h3>
+                                <div id="bordereau-meta"></div>
+                            </div>
+                            
+                            <div class="table-container">
+                                <table id="cheques-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Code Banque</th>
+                                            <th>Num Cheque</th>
+                                            <th>Info</th>
+                                            <th>Montant</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="cheques-tbody">
+                                    </tbody>
+                                </table>
+                                
+                                <div id="no-cheques" class="empty-table">
+                                    No cheques added yet. Click the + button to add a new cheque.
+                                </div>
+                                
+                                <div id="total-row" class="total-row" style="display: none;">
+                                    <strong>Total: <span id="total-amount">0.00</span></strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- History Tab -->
+                <div id="history-tab" class="tab-pane">
+                    <div class="tab-header">
+                        <h2>History</h2>
+                    </div>
+
+                    <!-- Search Section -->
+                    <div class="search-section">
+                        <div class="search-card">
+                            <h3><i class="fas fa-search"></i> Search & Filter</h3>
+                            <div class="search-controls">
+                                <input type="text" id="search-input" placeholder="Enter search term...">
+                                <select id="search-type">
+                                    <option value="bordereau">Search Bordereau</option>
+                                    <option value="cheque">Search Cheques</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div class="results-section">
+                        <div class="results-header">
+                            <h3>Bordereaux (<span id="results-count">0</span> found)</h3>
+                        </div>
+                        
+                        <div class="table-container">
+                            <table id="history-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>User</th>
+                                        <th>Destination</th>
+                                        <th>Created Date</th>
+                                        <th>Sending Date</th>
+                                        <th>Cheques Count</th>
+                                        <th>Total Amount</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-tbody">
+                                </tbody>
+                            </table>
+                            
+                            <div id="no-results" class="empty-table">
+                                No bordereaux found. Create some bordereaux first.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="new-bordereau-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Bordereau</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="new-bordereau-form">
+                <div class="form-group">
+                    <label for="destination">Destination</label>
+                    <input type="text" id="destination" placeholder="Enter destination" required>
+                </div>
+                <div class="form-group">
+                    <label for="sending-date">Sending Date</label>
+                    <input type="date" id="sending-date" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Create Bordereau</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="bordereau-detail-modal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="detail-title">Bordereau Details</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div id="detail-content">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
