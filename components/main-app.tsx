@@ -25,8 +25,8 @@ export default function MainApp({ currentUser, onLogout }: MainAppProps) {
           <div className="flex items-center space-x-3">
             <FileText className="h-8 w-8 text-blue-600" />
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Bordereau Manager</h1>
-              <p className="text-sm text-gray-500">Welcome, {currentUser}</p>
+              <h1 className="text-xl font-bold text-gray-900">Gestionnaire de Bordereaux</h1>
+              <p className="text-sm text-gray-500">Bienvenue, {currentUser}</p>
             </div>
           </div>
           <div className="flex items-center space-x-2">
@@ -35,17 +35,17 @@ export default function MainApp({ currentUser, onLogout }: MainAppProps) {
               onClick={() => {
                 toast({
                   title: "Notification",
-                  description: "This is a toast notification in our Electron app!",
+                  description: "Ceci est une notification dans notre application Electron !",
                 })
               }} 
               className="flex items-center space-x-2"
             >
               <Bell className="h-4 w-4" />
-              <span>Show Notification</span>
+              <span>Afficher Notification</span>
             </Button>
             <Button variant="outline" onClick={onLogout} className="flex items-center space-x-2">
               <LogOut className="h-4 w-4" />
-              <span>Logout</span>
+              <span>Déconnexion</span>
             </Button>
           </div>
         </div>
@@ -57,11 +57,11 @@ export default function MainApp({ currentUser, onLogout }: MainAppProps) {
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="management" className="flex items-center space-x-2">
               <FileText className="h-4 w-4" />
-              <span>Bordereau Management</span>
+              <span>Gestion des Bordereaux</span>
             </TabsTrigger>
             <TabsTrigger value="history" className="flex items-center space-x-2">
               <History className="h-4 w-4" />
-              <span>History</span>
+              <span>Historique</span>
             </TabsTrigger>
           </TabsList>
 

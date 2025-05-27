@@ -41,8 +41,8 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
   const createNewBordereau = () => {
     if (!destination || !sendingDate) {
       toast({
-        title: "Error",
-        description: "Please fill in all fields",
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs",
         variant: "destructive",
       })
       return
@@ -63,8 +63,8 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
     setSendingDate("")
 
     toast({
-      title: "Success",
-      description: "New Bordereau created successfully",
+      title: "Succès",
+      description: "Nouveau bordereau créé avec succès",
     })
   }
 
@@ -96,8 +96,8 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
         
         if (value !== numericValue) {
           toast({
-            title: "Invalid Input",
-            description: `Please enter only numbers for ${field === "codeBanque" ? "Code Banque" : "Num Cheque"}`,
+            title: "Saisie invalide",
+            description: `Veuillez saisir uniquement des chiffres pour ${field === "codeBanque" ? "Code Banque" : "N° Chèque"}`,
             variant: "destructive",
           });
         }
@@ -113,8 +113,8 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
         // If the value is not a valid number, don't update
         if (isNaN(Number(cleanValue))) {
           toast({
-            title: "Invalid Input",
-            description: "Please enter a valid number for Montant",
+            title: "Saisie invalide",
+            description: "Veuillez saisir un nombre valide pour le Montant",
             variant: "destructive",
           });
           return;
@@ -151,8 +151,8 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
     localStorage.setItem("bordereaux", JSON.stringify(savedBordereaux))
 
     toast({
-      title: "Success",
-      description: "Bordereau saved successfully",
+      title: "Succès",
+      description: "Bordereau enregistré avec succès",
     })
 
     setCurrentBordereau(null)
@@ -164,17 +164,17 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
     <div className="space-y-6">
       {/* Action Buttons */}
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Bordereau Management</h2>
+        <h2 className="text-2xl font-bold">Gestion des Bordereaux</h2>
         <div className="flex space-x-2">
           <Dialog open={isNewBordereauOpen} onOpenChange={setIsNewBordereauOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" onClick={() => setIsNewBordereauOpen(true)} className="hidden">
-                Create New Bordereau
+                Créer un Nouveau Bordereau
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create New Bordereau</DialogTitle>
+                <DialogTitle>Créer un Nouveau Bordereau</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
@@ -183,11 +183,11 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
                     id="destination"
                     value={destination}
                     onChange={(e) => setDestination(e.target.value)}
-                    placeholder="Enter destination"
+                    placeholder="Saisir la destination"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="sendingDate">Sending Date</Label>
+                  <Label htmlFor="sendingDate">Date d'envoi</Label>
                   <Input
                     id="sendingDate"
                     type="date"
@@ -196,7 +196,7 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
                   />
                 </div>
                 <div className="flex justify-end mt-4">
-                  <Button onClick={createNewBordereau}>Create Bordereau</Button>
+                  <Button onClick={createNewBordereau}>Créer le Bordereau</Button>
                 </div>
               </div>
             </DialogContent>
@@ -209,7 +209,7 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
               </Button>
               <Button size="sm" onClick={saveBordereau} variant="outline">
                 <Save className="h-4 w-4 mr-2" />
-                Save Bordereau
+                Enregistrer le Bordereau
               </Button>
             </>
           )}
@@ -234,7 +234,7 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
                   <TableRow>
                     <TableHead>ID</TableHead>
                     <TableHead>Code Banque</TableHead>
-                    <TableHead>Num Cheque</TableHead>
+                    <TableHead>N° Chèque</TableHead>
                     <TableHead>Info</TableHead>
                     <TableHead>Montant</TableHead>
                     <TableHead>Actions</TableHead>
@@ -259,14 +259,14 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
                           inputMode="numeric"
                           value={cheque.numCheque}
                           onChange={(e) => updateCheque(cheque.id, "numCheque", e.target.value)}
-                          placeholder="Num Cheque"
+                          placeholder="N° Chèque"
                         />
                       </TableCell>
                       <TableCell>
                         <Input
                           value={cheque.info}
                           onChange={(e) => updateCheque(cheque.id, "info", e.target.value)}
-                          placeholder="Info"
+                          placeholder="Information"
                         />
                       </TableCell>
                       <TableCell>
@@ -290,7 +290,7 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
 
               {currentBordereau.cheques.length === 0 && (
                 <div className="text-center py-8 text-gray-500">
-                  No cheques added yet. Click the + button to add a new cheque.
+                  Aucun chèque ajouté. Cliquez sur le bouton + pour ajouter un nouveau chèque.
                 </div>
               )}
 
@@ -307,13 +307,13 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
           <CardContent className="flex items-center justify-center py-12">
             <div className="text-center">
               <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Bordereau Selected</h3>
-              <p className="text-gray-500 mb-4">Create a new Bordereau to get started</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun Bordereau Sélectionné</h3>
+              <p className="text-gray-500 mb-4">Créez un nouveau bordereau pour commencer</p>
               <Dialog open={isNewBordereauOpen} onOpenChange={setIsNewBordereauOpen}>
                 <DialogTrigger asChild>
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
-                    Create New Bordereau
+                    Créer un Nouveau Bordereau
                   </Button>
                 </DialogTrigger>
               </Dialog>

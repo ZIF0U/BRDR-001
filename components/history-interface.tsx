@@ -76,16 +76,16 @@ export default function HistoryInterface() {
   const exportToPDF = (bordereau: Bordereau) => {
     // In a real app, this would generate a PDF
     toast({
-      title: "Export",
-      description: `PDF export for ${bordereau.id} would be generated here`,
+      title: "Exportation",
+      description: `L'exportation PDF pour ${bordereau.id} serait générée ici`,
     })
   }
 
   const exportToExcel = (bordereau: Bordereau) => {
     // In a real app, this would generate an Excel file
     toast({
-      title: "Export",
-      description: `Excel export for ${bordereau.id} would be generated here`,
+      title: "Exportation",
+      description: `L'exportation Excel pour ${bordereau.id} serait générée ici`,
     })
   }
 
@@ -101,7 +101,7 @@ export default function HistoryInterface() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">History</h2>
+        <h2 className="text-2xl font-bold">Historique</h2>
       </div>
 
       {/* Search and Filter */}
@@ -109,14 +109,14 @@ export default function HistoryInterface() {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Search className="h-5 w-5" />
-            <span>Search & Filter</span>
+            <span>Recherche & Filtrage</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex space-x-4">
             <div className="flex-1">
               <Input
-                placeholder="Enter search term..."
+                placeholder="Saisissez un terme de recherche..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -126,8 +126,8 @@ export default function HistoryInterface() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="bordereau">Search Bordereau</SelectItem>
-                <SelectItem value="cheque">Search Cheques</SelectItem>
+                <SelectItem value="bordereau">Rechercher Bordereau</SelectItem>
+                <SelectItem value="cheque">Rechercher Chèques</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -137,7 +137,7 @@ export default function HistoryInterface() {
       {/* Results */}
       <Card>
         <CardHeader>
-          <CardTitle>Bordereaux ({filteredBordereaux.length} found)</CardTitle>
+          <CardTitle>Bordereaux ({filteredBordereaux.length} trouvés)</CardTitle>
         </CardHeader>
         <CardContent>
           {filteredBordereaux.length > 0 ? (
@@ -145,12 +145,12 @@ export default function HistoryInterface() {
               <TableHeader>
                 <TableRow>
                   <TableHead>ID</TableHead>
-                  <TableHead>User</TableHead>
+                  <TableHead>Utilisateur</TableHead>
                   <TableHead>Destination</TableHead>
-                  <TableHead>Created Date</TableHead>
-                  <TableHead>Sending Date</TableHead>
-                  <TableHead>Cheques Count</TableHead>
-                  <TableHead>Total Amount</TableHead>
+                  <TableHead>Date de création</TableHead>
+                  <TableHead>Date d'envoi</TableHead>
+                  <TableHead>Nombre de chèques</TableHead>
+                  <TableHead>Montant total</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -184,8 +184,8 @@ export default function HistoryInterface() {
           ) : (
             <div className="text-center py-8 text-gray-500">
               {bordereaux.length === 0
-                ? "No bordereaux found. Create some bordereaux first."
-                : "No results found for your search."}
+                ? "Aucun bordereau trouvé. Créez d'abord des bordereaux."
+                : "Aucun résultat trouvé pour votre recherche."}
             </div>
           )}
         </CardContent>
@@ -195,33 +195,33 @@ export default function HistoryInterface() {
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
-            <DialogTitle>Bordereau Details: {selectedBordereau?.id}</DialogTitle>
+            <DialogTitle>Détails du Bordereau: {selectedBordereau?.id}</DialogTitle>
           </DialogHeader>
           {selectedBordereau && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <strong>User:</strong> {selectedBordereau.user}
+                  <strong>Utilisateur:</strong> {selectedBordereau.user}
                 </div>
                 <div>
                   <strong>Destination:</strong> {selectedBordereau.destination}
                 </div>
                 <div>
-                  <strong>Created:</strong> {selectedBordereau.createdDate}
+                  <strong>Créé le:</strong> {selectedBordereau.createdDate}
                 </div>
                 <div>
-                  <strong>Sending Date:</strong> {selectedBordereau.sendingDate}
+                  <strong>Date d'envoi:</strong> {selectedBordereau.sendingDate}
                 </div>
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2">Cheques</h4>
+                <h4 className="font-semibold mb-2">Chèques</h4>
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>ID</TableHead>
                       <TableHead>Code Banque</TableHead>
-                      <TableHead>Num Cheque</TableHead>
+                      <TableHead>N° Chèque</TableHead>
                       <TableHead>Info</TableHead>
                       <TableHead>Montant</TableHead>
                     </TableRow>

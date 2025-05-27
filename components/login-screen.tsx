@@ -27,10 +27,10 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
         // Demo passwords
         onLogin(username)
       } else {
-        setError("Invalid credentials")
+        setError("Identifiants invalides")
       }
     } else {
-      setError("Please enter both username and password")
+      setError("Veuillez saisir un nom d'utilisateur et un mot de passe")
     }
   }
 
@@ -38,19 +38,19 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Bordereau Manager</CardTitle>
-          <CardDescription className="text-center">Enter your credentials to access the application</CardDescription>
+          <CardTitle className="text-2xl font-bold text-center">Gestionnaire de Bordereaux</CardTitle>
+          <CardDescription className="text-center">Entrez vos identifiants pour accéder à l'application</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username">Nom d'utilisateur</Label>
               <div className="relative">
                 <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
                   id="username"
                   type="text"
-                  placeholder="Enter your username"
+                  placeholder="Entrez votre nom d'utilisateur"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="pl-10"
@@ -58,13 +58,13 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Mot de passe</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Enter your password"
+                  placeholder="Entrez votre mot de passe"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10"
@@ -73,10 +73,10 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
             </div>
             {error && <div className="text-red-500 text-sm text-center">{error}</div>}
             <Button type="submit" className="w-full">
-              Login
+              Connexion
             </Button>
           </form>
-          <div className="mt-4 text-xs text-gray-500 text-center">Demo: Use password "admin" or "password"</div>
+          <div className="mt-4 text-xs text-gray-500 text-center">Démo: Utilisez le mot de passe "admin" ou "password"</div>
         </CardContent>
       </Card>
     </div>
