@@ -7,15 +7,17 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Plus, Save, Trash2, FileText } from "lucide-react"
+import { Plus, Save, Trash2, FileText, FolderOpen } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 
 interface Cheque {
   id: string
+  emetteur: string
   codeBanque: string
   numCheque: string
-  info: string
   montant: number
+  numFacture: string
+  client: string
 }
 
 interface Bordereau {
@@ -34,9 +36,12 @@ interface BordereauManagementProps {
 export default function BordereauManagement({ currentUser }: BordereauManagementProps) {
   const [currentBordereau, setCurrentBordereau] = useState<Bordereau | null>(null)
   const [isNewBordereauOpen, setIsNewBordereauOpen] = useState(false)
+  const [isOpenBordereauOpen, setIsOpenBordereauOpen] = useState(false)
   const [destination, setDestination] = useState("")
   const [sendingDate, setSendingDate] = useState("")
   const [editingCheque, setEditingCheque] = useState<string | null>(null)
+  const [bordereauIdToOpen, setBordereauIdToOpen] = useState("")
+  const [isEditing, setIsEditing] = useState(false)
 
   const createNewBordereau = () => {
     if (!destination || !sendingDate) {
@@ -61,6 +66,7 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
     setIsNewBordereauOpen(false)
     setDestination("")
     setSendingDate("")
+    setIsEditing(false)
 
     toast({
       title: "Succès",
@@ -73,10 +79,12 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
 
     const newCheque: Cheque = {
       id: String(currentBordereau.cheques.length + 1).padStart(2, "0"),
+      emetteur: "",
       codeBanque: "",
       numCheque: "",
-      info: "",
       montant: 0,
+      numFacture: "",
+      client: ""
     }
 
     setCurrentBordereau({
@@ -123,6 +131,7 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
         // Convert directly to number without any additional processing
         value = Number(cleanValue);
       }
+      // Other fields (emetteur, numFacture, client) don't need special validation
     }
 
     setCurrentBordereau({
@@ -142,20 +151,70 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
     })
   }
 
+  const openBordereau = () => {
+    if (!bordereauIdToOpen.trim()) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez saisir l'identifiant du bordereau",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Load from localStorage (in a real app, this would be loaded from SQLite database)
+    const savedBordereaux = JSON.parse(localStorage.getItem("bordereaux") || "[]")
+    const bordereau = savedBordereaux.find((b: Bordereau) => b.id === bordereauIdToOpen.trim())
+
+    if (!bordereau) {
+      toast({
+        title: "Erreur",
+        description: "Bordereau non trouvé",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setCurrentBordereau(bordereau)
+    setIsOpenBordereauOpen(false)
+    setBordereauIdToOpen("")
+    setIsEditing(true)
+
+    toast({
+      title: "Succès",
+      description: "Bordereau ouvert avec succès",
+    })
+  }
+
   const saveBordereau = () => {
     if (!currentBordereau) return
 
     // Save to localStorage (in a real app, this would be saved to SQLite database)
     const savedBordereaux = JSON.parse(localStorage.getItem("bordereaux") || "[]")
-    savedBordereaux.push(currentBordereau)
-    localStorage.setItem("bordereaux", JSON.stringify(savedBordereaux))
-
-    toast({
-      title: "Succès",
-      description: "Bordereau enregistré avec succès",
-    })
+    
+    if (isEditing) {
+      // Update existing bordereau
+      const updatedBordereaux = savedBordereaux.map((b: Bordereau) => 
+        b.id === currentBordereau.id ? currentBordereau : b
+      )
+      localStorage.setItem("bordereaux", JSON.stringify(updatedBordereaux))
+      
+      toast({
+        title: "Succès",
+        description: "Bordereau mis à jour avec succès",
+      })
+    } else {
+      // Add new bordereau
+      savedBordereaux.push(currentBordereau)
+      localStorage.setItem("bordereaux", JSON.stringify(savedBordereaux))
+      
+      toast({
+        title: "Succès",
+        description: "Bordereau enregistré avec succès",
+      })
+    }
 
     setCurrentBordereau(null)
+    setIsEditing(false)
   }
 
   const totalMontant = currentBordereau?.cheques.reduce((sum, cheque) => sum + cheque.montant, 0) || 0
@@ -166,6 +225,7 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Gestion des Bordereaux</h2>
         <div className="flex space-x-2">
+          {/* Dialog for creating a new bordereau */}
           <Dialog open={isNewBordereauOpen} onOpenChange={setIsNewBordereauOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" onClick={() => setIsNewBordereauOpen(true)} className="hidden">
@@ -202,6 +262,35 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
             </DialogContent>
           </Dialog>
 
+          {/* Dialog for opening an existing bordereau */}
+          <Dialog open={isOpenBordereauOpen} onOpenChange={setIsOpenBordereauOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" onClick={() => setIsOpenBordereauOpen(true)}>
+                <FolderOpen className="h-4 w-4 mr-2" />
+                Ouvrir un Bordereau
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Ouvrir un Bordereau Existant</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="bordereauId">Identifiant du Bordereau</Label>
+                  <Input
+                    id="bordereauId"
+                    value={bordereauIdToOpen}
+                    onChange={(e) => setBordereauIdToOpen(e.target.value)}
+                    placeholder="Saisir l'identifiant du bordereau (ex: BDR-1234567890)"
+                  />
+                </div>
+                <div className="flex justify-end mt-4">
+                  <Button onClick={openBordereau}>Ouvrir le Bordereau</Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
           {currentBordereau && (
             <>
               <Button size="sm" onClick={addNewCheque} className="rounded-full">
@@ -209,7 +298,7 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
               </Button>
               <Button size="sm" onClick={saveBordereau} variant="outline">
                 <Save className="h-4 w-4 mr-2" />
-                Enregistrer le Bordereau
+                {isEditing ? "Mettre à jour le Bordereau" : "Enregistrer le Bordereau"}
               </Button>
             </>
           )}
@@ -233,10 +322,12 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
                 <TableHeader>
                   <TableRow>
                     <TableHead>ID</TableHead>
+                    <TableHead>Nom de l'émetteur</TableHead>
                     <TableHead>Code Banque</TableHead>
                     <TableHead>N° Chèque</TableHead>
-                    <TableHead>Info</TableHead>
                     <TableHead>Montant</TableHead>
+                    <TableHead>N° Facture</TableHead>
+                    <TableHead>Client</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -244,6 +335,14 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
                   {currentBordereau.cheques.map((cheque) => (
                     <TableRow key={cheque.id}>
                       <TableCell>{cheque.id}</TableCell>
+                      <TableCell>
+                        <Input
+                          type="text"
+                          value={cheque.emetteur}
+                          onChange={(e) => updateCheque(cheque.id, "emetteur", e.target.value)}
+                          placeholder="Nom de l'émetteur"
+                        />
+                      </TableCell>
                       <TableCell>
                         <Input
                           type="text"
@@ -264,18 +363,27 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
                       </TableCell>
                       <TableCell>
                         <Input
-                          value={cheque.info}
-                          onChange={(e) => updateCheque(cheque.id, "info", e.target.value)}
-                          placeholder="Information"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
                           type="text"
                           value={String(cheque.montant)}
                           onChange={(e) => updateCheque(cheque.id, "montant", e.target.value)}
                           placeholder="Montant"
                           inputMode="decimal"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="text"
+                          value={cheque.numFacture}
+                          onChange={(e) => updateCheque(cheque.id, "numFacture", e.target.value)}
+                          placeholder="N° Facture"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="text"
+                          value={cheque.client}
+                          onChange={(e) => updateCheque(cheque.id, "client", e.target.value)}
+                          placeholder="Client"
                         />
                       </TableCell>
                       <TableCell>
@@ -308,15 +416,25 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
             <div className="text-center">
               <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun Bordereau Sélectionné</h3>
-              <p className="text-gray-500 mb-4">Créez un nouveau bordereau pour commencer</p>
-              <Dialog open={isNewBordereauOpen} onOpenChange={setIsNewBordereauOpen}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Créer un Nouveau Bordereau
-                  </Button>
-                </DialogTrigger>
-              </Dialog>
+              <p className="text-gray-500 mb-4">Créez un nouveau bordereau ou ouvrez un bordereau existant</p>
+              <div className="flex justify-center space-x-4">
+                <Dialog open={isNewBordereauOpen} onOpenChange={setIsNewBordereauOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Créer un Nouveau Bordereau
+                    </Button>
+                  </DialogTrigger>
+                </Dialog>
+                <Dialog open={isOpenBordereauOpen} onOpenChange={setIsOpenBordereauOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline">
+                      <FolderOpen className="h-4 w-4 mr-2" />
+                      Ouvrir un Bordereau
+                    </Button>
+                  </DialogTrigger>
+                </Dialog>
+              </div>
             </div>
           </CardContent>
         </Card>

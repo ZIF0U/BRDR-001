@@ -12,10 +12,12 @@ import { toast } from "@/hooks/use-toast"
 
 interface Cheque {
   id: string
+  emetteur: string
   codeBanque: string
   numCheque: string
-  info: string
   montant: number
+  numFacture: string
+  client: string
 }
 
 interface Bordereau {
@@ -62,10 +64,12 @@ export default function HistoryInterface() {
         // Search in cheques
         return bordereau.cheques.some(
           (cheque) =>
+            cheque.emetteur.toLowerCase().includes(searchTerm.toLowerCase()) ||
             cheque.codeBanque.toLowerCase().includes(searchTerm.toLowerCase()) ||
             cheque.numCheque.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            cheque.info.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            cheque.montant.toString().includes(searchTerm),
+            cheque.montant.toString().includes(searchTerm) ||
+            cheque.numFacture.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            cheque.client.toLowerCase().includes(searchTerm.toLowerCase()),
         )
       }
     })
@@ -220,20 +224,24 @@ export default function HistoryInterface() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>ID</TableHead>
+                      <TableHead>Nom de l'émetteur</TableHead>
                       <TableHead>Code Banque</TableHead>
                       <TableHead>N° Chèque</TableHead>
-                      <TableHead>Info</TableHead>
                       <TableHead>Montant</TableHead>
+                      <TableHead>N° Facture</TableHead>
+                      <TableHead>Client</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {selectedBordereau.cheques.map((cheque) => (
                       <TableRow key={cheque.id}>
                         <TableCell>{cheque.id}</TableCell>
+                        <TableCell>{cheque.emetteur}</TableCell>
                         <TableCell>{cheque.codeBanque}</TableCell>
                         <TableCell>{cheque.numCheque}</TableCell>
-                        <TableCell>{cheque.info}</TableCell>
                         <TableCell>{cheque.montant.toFixed(2)}</TableCell>
+                        <TableCell>{cheque.numFacture}</TableCell>
+                        <TableCell>{cheque.client}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
