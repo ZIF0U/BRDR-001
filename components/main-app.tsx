@@ -6,7 +6,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import BordereauManagement from "@/components/bordereau-management"
 import HistoryInterface from "@/components/history-interface"
 import { LogOut, FileText, History, Bell } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
 
 interface MainAppProps {
   currentUser: string
@@ -15,7 +14,6 @@ interface MainAppProps {
 
 export default function MainApp({ currentUser, onLogout }: MainAppProps) {
   const [activeTab, setActiveTab] = useState("management")
-  const { toast } = useToast()
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -30,19 +28,6 @@ export default function MainApp({ currentUser, onLogout }: MainAppProps) {
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                toast({
-                  title: "Notification",
-                  description: "Ceci est une notification dans notre application Electron !",
-                })
-              }} 
-              className="flex items-center space-x-2"
-            >
-              <Bell className="h-4 w-4" />
-              <span>Afficher Notification</span>
-            </Button>
             <Button variant="outline" onClick={onLogout} className="flex items-center space-x-2">
               <LogOut className="h-4 w-4" />
               <span>Déconnexion</span>

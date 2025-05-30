@@ -39,7 +39,6 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
   const [isOpenBordereauOpen, setIsOpenBordereauOpen] = useState(false)
   const [destination, setDestination] = useState("")
   const [sendingDate, setSendingDate] = useState("")
-  const [editingCheque, setEditingCheque] = useState<string | null>(null)
   const [bordereauIdToOpen, setBordereauIdToOpen] = useState("")
   const [isEditing, setIsEditing] = useState(false)
 
@@ -136,9 +135,24 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
 
     setCurrentBordereau({
       ...currentBordereau,
-      cheques: currentBordereau.cheques.map((cheque) =>
-        cheque.id === chequeId ? { ...cheque, [field]: value } : cheque,
-      ),
+      cheques: currentBordereau.cheques.map((cheque) => {
+        if (cheque.id === chequeId) {
+          // Create a complete cheque object with default values for any missing properties
+          const updatedCheque = {
+            id: cheque.id || '',
+            emetteur: cheque.emetteur || '',
+            codeBanque: cheque.codeBanque || '',
+            numCheque: cheque.numCheque || '',
+            montant: typeof cheque.montant === 'number' ? cheque.montant : 0,
+            numFacture: cheque.numFacture || '',
+            client: cheque.client || '',
+            // Update the specific field
+            [field]: value
+          };
+          return updatedCheque;
+        }
+        return cheque;
+      }),
     })
   }
 
@@ -174,7 +188,27 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
       return
     }
 
-    setCurrentBordereau(bordereau)
+    // Ensure all bordereau and cheque properties have defined values
+    const processedBordereau: Bordereau = {
+      id: bordereau.id || '',
+      destination: bordereau.destination || '',
+      sendingDate: bordereau.sendingDate || '',
+      createdDate: bordereau.createdDate || '',
+      user: bordereau.user || '',
+      cheques: Array.isArray(bordereau.cheques) 
+        ? bordereau.cheques.map((cheque: { id: any; emetteur: any; codeBanque: any; numCheque: any; montant: any; numFacture: any; client: any }) => ({
+            id: cheque?.id || '',
+            emetteur: cheque?.emetteur || '',
+            codeBanque: cheque?.codeBanque || '',
+            numCheque: cheque?.numCheque || '',
+            montant: typeof cheque?.montant === 'number' ? cheque.montant : 0,
+            numFacture: cheque?.numFacture || '',
+            client: cheque?.client || ''
+          }))
+        : []
+    }
+    
+    setCurrentBordereau(processedBordereau)
     setIsOpenBordereauOpen(false)
     setBordereauIdToOpen("")
     setIsEditing(true)
@@ -188,13 +222,33 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
   const saveBordereau = () => {
     if (!currentBordereau) return
 
+    // Ensure all properties are properly defined before saving
+    const processedBordereau: Bordereau = {
+      id: currentBordereau.id || '',
+      destination: currentBordereau.destination || '',
+      sendingDate: currentBordereau.sendingDate || '',
+      createdDate: currentBordereau.createdDate || '',
+      user: currentBordereau.user || '',
+      cheques: Array.isArray(currentBordereau.cheques) 
+        ? currentBordereau.cheques.map(cheque => ({
+            id: cheque?.id || '',
+            emetteur: cheque?.emetteur || '',
+            codeBanque: cheque?.codeBanque || '',
+            numCheque: cheque?.numCheque || '',
+            montant: typeof cheque?.montant === 'number' ? cheque.montant : 0,
+            numFacture: cheque?.numFacture || '',
+            client: cheque?.client || ''
+          }))
+        : []
+    }
+
     // Save to localStorage (in a real app, this would be saved to SQLite database)
     const savedBordereaux = JSON.parse(localStorage.getItem("bordereaux") || "[]")
     
     if (isEditing) {
       // Update existing bordereau
       const updatedBordereaux = savedBordereaux.map((b: Bordereau) => 
-        b.id === currentBordereau.id ? currentBordereau : b
+        b.id === processedBordereau.id ? processedBordereau : b
       )
       localStorage.setItem("bordereaux", JSON.stringify(updatedBordereaux))
       
@@ -204,7 +258,7 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
       })
     } else {
       // Add new bordereau
-      savedBordereaux.push(currentBordereau)
+      savedBordereaux.push(processedBordereau)
       localStorage.setItem("bordereaux", JSON.stringify(savedBordereaux))
       
       toast({
@@ -217,7 +271,12 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
     setIsEditing(false)
   }
 
-  const totalMontant = currentBordereau?.cheques.reduce((sum, cheque) => sum + cheque.montant, 0) || 0
+  const totalMontant = currentBordereau && Array.isArray(currentBordereau.cheques) 
+    ? currentBordereau.cheques.reduce((sum, cheque) => {
+        if (!cheque) return sum;
+        return sum + (typeof cheque.montant === 'number' ? cheque.montant : 0);
+      }, 0) 
+    : 0
 
   return (
     <div className="space-y-6">
@@ -264,12 +323,6 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
 
           {/* Dialog for opening an existing bordereau */}
           <Dialog open={isOpenBordereauOpen} onOpenChange={setIsOpenBordereauOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" onClick={() => setIsOpenBordereauOpen(true)}>
-                <FolderOpen className="h-4 w-4 mr-2" />
-                Ouvrir un Bordereau
-              </Button>
-            </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Ouvrir un Bordereau Existant</DialogTitle>
@@ -338,7 +391,7 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
                       <TableCell>
                         <Input
                           type="text"
-                          value={cheque.emetteur}
+                          value={cheque.emetteur || ''}
                           onChange={(e) => updateCheque(cheque.id, "emetteur", e.target.value)}
                           placeholder="Nom de l'émetteur"
                         />
@@ -347,7 +400,7 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
                         <Input
                           type="text"
                           inputMode="numeric"
-                          value={cheque.codeBanque}
+                          value={cheque.codeBanque || ''}
                           onChange={(e) => updateCheque(cheque.id, "codeBanque", e.target.value)}
                           placeholder="Code Banque"
                         />
@@ -356,7 +409,7 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
                         <Input
                           type="text"
                           inputMode="numeric"
-                          value={cheque.numCheque}
+                          value={cheque.numCheque || ''}
                           onChange={(e) => updateCheque(cheque.id, "numCheque", e.target.value)}
                           placeholder="N° Chèque"
                         />
@@ -364,7 +417,7 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
                       <TableCell>
                         <Input
                           type="text"
-                          value={String(cheque.montant)}
+                          value={typeof cheque.montant === 'number' ? String(cheque.montant) : '0'}
                           onChange={(e) => updateCheque(cheque.id, "montant", e.target.value)}
                           placeholder="Montant"
                           inputMode="decimal"
@@ -373,7 +426,7 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
                       <TableCell>
                         <Input
                           type="text"
-                          value={cheque.numFacture}
+                          value={cheque.numFacture || ''}
                           onChange={(e) => updateCheque(cheque.id, "numFacture", e.target.value)}
                           placeholder="N° Facture"
                         />
@@ -381,7 +434,7 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
                       <TableCell>
                         <Input
                           type="text"
-                          value={cheque.client}
+                          value={cheque.client || ''}
                           onChange={(e) => updateCheque(cheque.id, "client", e.target.value)}
                           placeholder="Client"
                         />

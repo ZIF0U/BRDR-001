@@ -46,30 +46,45 @@ export default function HistoryInterface() {
 
   useEffect(() => {
     // Filter bordereaux based on search
-    if (!searchTerm) {
+    if (!searchTerm || searchTerm.trim() === '') {
       setFilteredBordereaux(bordereaux)
       return
     }
 
     const filtered = bordereaux.filter((bordereau) => {
       if (searchType === "bordereau") {
+        const searchTermLower = searchTerm.toLowerCase();
+        const id = bordereau.id || '';
+        const user = bordereau.user || '';
+        const destination = bordereau.destination || '';
+        const createdDate = bordereau.createdDate || '';
+        const sendingDate = bordereau.sendingDate || '';
+        
         return (
-          bordereau.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          bordereau.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          bordereau.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          bordereau.createdDate.includes(searchTerm) ||
-          bordereau.sendingDate.includes(searchTerm)
+          id.toLowerCase().includes(searchTermLower) ||
+          user.toLowerCase().includes(searchTermLower) ||
+          destination.toLowerCase().includes(searchTermLower) ||
+          createdDate.includes(searchTerm) ||
+          sendingDate.includes(searchTerm)
         )
       } else {
-        // Search in cheques
+        // Search in cheques - only by cheque number (numCheque) and/or issuer name (emetteur)
+        // First check if cheques array exists
+        if (!bordereau.cheques || !Array.isArray(bordereau.cheques)) {
+          return false;
+        }
+        
         return bordereau.cheques.some(
-          (cheque) =>
-            cheque.emetteur.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            cheque.codeBanque.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            cheque.numCheque.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            cheque.montant.toString().includes(searchTerm) ||
-            cheque.numFacture.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            cheque.client.toLowerCase().includes(searchTerm.toLowerCase()),
+          (cheque) => {
+            if (!cheque) return false;
+            
+            const searchTermLower = searchTerm.toLowerCase();
+            const numCheque = cheque.numCheque || '';
+            const emetteur = cheque.emetteur || '';
+            
+            return numCheque.toLowerCase().includes(searchTermLower) || 
+                   emetteur.toLowerCase().includes(searchTermLower);
+          }
         )
       }
     })
@@ -99,7 +114,7 @@ export default function HistoryInterface() {
   }
 
   const getTotalMontant = (bordereau: Bordereau) => {
-    return bordereau.cheques.reduce((sum, cheque) => sum + cheque.montant, 0)
+    return bordereau.cheques.reduce((sum, cheque) => sum + (typeof cheque.montant === 'number' ? cheque.montant : 0), 0)
   }
 
   return (
@@ -120,7 +135,9 @@ export default function HistoryInterface() {
           <div className="flex space-x-4">
             <div className="flex-1">
               <Input
-                placeholder="Saisissez un terme de recherche..."
+                placeholder={searchType === "cheque" 
+                  ? "Rechercher par n° chèque ou nom de l'émetteur..." 
+                  : "Saisissez un terme de recherche..."}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
