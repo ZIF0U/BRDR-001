@@ -529,12 +529,12 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
                       <TableCell>
                         <div className="flex space-x-2">
                           {!cheque.editing ? (
-                            <Button size="sm" variant="outline" className="bg-blue-50" onClick={() => editCheque(cheque.id)}>
-                              <Edit2 className="h-4 w-4 text-blue-600" />
+                            <Button size="sm" variant="outline" className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => editCheque(cheque.id)}>
+                              <Edit2 className="h-4 w-4" />
                             </Button>
                           ) : (
-                            <Button size="sm" variant="outline" className="bg-green-50" onClick={() => confirmCheque(cheque.id)}>
-                              <Check className="h-4 w-4 text-green-600" />
+                            <Button size="sm" variant="outline" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => confirmCheque(cheque.id)}>
+                              <Check className="h-4 w-4" />
                             </Button>
                           )}
                           <Button size="sm" variant="destructive" onClick={() => deleteCheque(cheque.id)}>
