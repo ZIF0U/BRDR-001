@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Plus, Save, Trash2, FileText, FolderOpen } from "lucide-react"
+import { Plus, Save, Trash2, FileText, FolderOpen, Check, Edit2 } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 
 interface Cheque {
@@ -18,6 +18,7 @@ interface Cheque {
   montant: number
   numFacture: string
   client: string
+  editing?: boolean
 }
 
 interface Bordereau {
@@ -83,7 +84,8 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
       numCheque: "",
       montant: 0,
       numFacture: "",
-      client: ""
+      client: "",
+      editing: true // Mark as editing when first added
     }
 
     setCurrentBordereau({
@@ -146,6 +148,8 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
             montant: typeof cheque.montant === 'number' ? cheque.montant : 0,
             numFacture: cheque.numFacture || '',
             client: cheque.client || '',
+            // Mark as editing when modified
+            editing: true,
             // Update the specific field
             [field]: value
           };
@@ -162,6 +166,63 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
     setCurrentBordereau({
       ...currentBordereau,
       cheques: currentBordereau.cheques.filter((cheque) => cheque.id !== chequeId),
+    })
+  }
+  
+  const editCheque = (chequeId: string) => {
+    if (!currentBordereau) return
+    
+    // Update the cheque to enable editing mode
+    setCurrentBordereau({
+      ...currentBordereau,
+      cheques: currentBordereau.cheques.map((cheque) => {
+        if (cheque.id === chequeId) {
+          return {
+            ...cheque,
+            editing: true
+          }
+        }
+        return cheque
+      }),
+    })
+  }
+
+  const confirmCheque = (chequeId: string) => {
+    if (!currentBordereau) return
+    
+    // Validate the cheque data before confirming
+    const chequeToConfirm = currentBordereau.cheques.find(cheque => cheque.id === chequeId)
+    
+    if (!chequeToConfirm) return
+    
+    // Check if required fields are filled
+    if (!chequeToConfirm.emetteur || !chequeToConfirm.codeBanque || 
+        !chequeToConfirm.numCheque || chequeToConfirm.montant <= 0) {
+      toast({
+        title: "Validation échouée",
+        description: "Veuillez remplir tous les champs obligatoires (émetteur, code banque, numéro de chèque, montant)",
+        variant: "destructive",
+      })
+      return
+    }
+    
+    // Update the cheque to remove editing mode
+    setCurrentBordereau({
+      ...currentBordereau,
+      cheques: currentBordereau.cheques.map((cheque) => {
+        if (cheque.id === chequeId) {
+          return {
+            ...cheque,
+            editing: false
+          }
+        }
+        return cheque
+      }),
+    })
+    
+    toast({
+      title: "Succès",
+      description: "Chèque confirmé avec succès",
     })
   }
 
@@ -203,7 +264,8 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
             numCheque: cheque?.numCheque || '',
             montant: typeof cheque?.montant === 'number' ? cheque.montant : 0,
             numFacture: cheque?.numFacture || '',
-            client: cheque?.client || ''
+            client: cheque?.client || '',
+            editing: false // Ensure existing cheques are not in editing mode when opened
           }))
         : []
     }
@@ -223,6 +285,18 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
     if (!currentBordereau) return
 
     // Ensure all properties are properly defined before saving
+    // Check if any cheques are still in editing mode
+    const hasEditingCheques = currentBordereau.cheques.some(cheque => cheque.editing);
+    
+    if (hasEditingCheques) {
+      toast({
+        title: "Attention",
+        description: "Certains chèques sont en cours d'édition. Veuillez les confirmer avant d'enregistrer.",
+        variant: "destructive",
+      })
+      return;
+    }
+    
     const processedBordereau: Bordereau = {
       id: currentBordereau.id || '',
       destination: currentBordereau.destination || '',
@@ -238,6 +312,7 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
             montant: typeof cheque?.montant === 'number' ? cheque.montant : 0,
             numFacture: cheque?.numFacture || '',
             client: cheque?.client || ''
+            // We don't save the editing state to storage
           }))
         : []
     }
@@ -394,6 +469,8 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
                           value={cheque.emetteur || ''}
                           onChange={(e) => updateCheque(cheque.id, "emetteur", e.target.value)}
                           placeholder="Nom de l'émetteur"
+                          readOnly={!cheque.editing}
+                          className={!cheque.editing ? "bg-gray-50" : ""}
                         />
                       </TableCell>
                       <TableCell>
@@ -403,6 +480,8 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
                           value={cheque.codeBanque || ''}
                           onChange={(e) => updateCheque(cheque.id, "codeBanque", e.target.value)}
                           placeholder="Code Banque"
+                          readOnly={!cheque.editing}
+                          className={!cheque.editing ? "bg-gray-50" : ""}
                         />
                       </TableCell>
                       <TableCell>
@@ -412,6 +491,8 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
                           value={cheque.numCheque || ''}
                           onChange={(e) => updateCheque(cheque.id, "numCheque", e.target.value)}
                           placeholder="N° Chèque"
+                          readOnly={!cheque.editing}
+                          className={!cheque.editing ? "bg-gray-50" : ""}
                         />
                       </TableCell>
                       <TableCell>
@@ -421,6 +502,8 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
                           onChange={(e) => updateCheque(cheque.id, "montant", e.target.value)}
                           placeholder="Montant"
                           inputMode="decimal"
+                          readOnly={!cheque.editing}
+                          className={!cheque.editing ? "bg-gray-50" : ""}
                         />
                       </TableCell>
                       <TableCell>
@@ -429,6 +512,8 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
                           value={cheque.numFacture || ''}
                           onChange={(e) => updateCheque(cheque.id, "numFacture", e.target.value)}
                           placeholder="N° Facture"
+                          readOnly={!cheque.editing}
+                          className={!cheque.editing ? "bg-gray-50" : ""}
                         />
                       </TableCell>
                       <TableCell>
@@ -437,12 +522,25 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
                           value={cheque.client || ''}
                           onChange={(e) => updateCheque(cheque.id, "client", e.target.value)}
                           placeholder="Client"
+                          readOnly={!cheque.editing}
+                          className={!cheque.editing ? "bg-gray-50" : ""}
                         />
                       </TableCell>
                       <TableCell>
-                        <Button size="sm" variant="destructive" onClick={() => deleteCheque(cheque.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex space-x-2">
+                          {!cheque.editing ? (
+                            <Button size="sm" variant="outline" className="bg-blue-50" onClick={() => editCheque(cheque.id)}>
+                              <Edit2 className="h-4 w-4 text-blue-600" />
+                            </Button>
+                          ) : (
+                            <Button size="sm" variant="outline" className="bg-green-50" onClick={() => confirmCheque(cheque.id)}>
+                              <Check className="h-4 w-4 text-green-600" />
+                            </Button>
+                          )}
+                          <Button size="sm" variant="destructive" onClick={() => deleteCheque(cheque.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
