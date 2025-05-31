@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Plus, Save, Trash2, FileText, FolderOpen, Check, Edit2 } from "lucide-react"
+import { Plus, Save, Trash2, FileText, FolderOpen, Check, Edit2, Printer } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 
 interface Cheque {
@@ -406,6 +406,196 @@ const BordereauManagement = forwardRef<BordereauManagementRef, BordereauManageme
         return sum + (typeof cheque.montant === 'number' ? cheque.montant : 0);
       }, 0) 
     : 0
+    
+  // Function to handle printing the bordereau
+  const printBordereau = () => {
+    if (!currentBordereau) return;
+    
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'ouvrir la fenêtre d'impression. Veuillez vérifier les paramètres de votre navigateur.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Format date for display
+    const formattedCreatedDate = new Date(currentBordereau.createdDate).toLocaleDateString('fr-FR');
+    const formattedSendingDate = new Date(currentBordereau.sendingDate).toLocaleDateString('fr-FR');
+    
+    // Calculate number of pages needed (20 rows per page)
+    const cheques = currentBordereau.cheques;
+    const chequesPerPage = 20;
+    const pageCount = Math.ceil(cheques.length / chequesPerPage);
+    
+    // Generate HTML content for printing
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Bordereau ${currentBordereau.id}</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+          }
+          .bordereau-info {
+            margin-bottom: 20px;
+          }
+          .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+          }
+          .info-item {
+            margin-bottom: 5px;
+          }
+          .info-label {
+            font-weight: bold;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+          }
+          th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+          }
+          th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+          }
+          .id-col { width: 5%; }
+          .emetteur-col { width: 30%; }
+          .code-col { width: 15%; }
+          .montant-col { width: 15%; }
+          .facture-col { width: 15%; }
+          .client-col { width: 20%; }
+          .page-break {
+            page-break-after: always;
+          }
+          .page-header {
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-weight: bold;
+          }
+          .total {
+            text-align: right;
+            font-weight: bold;
+            margin-top: 10px;
+            font-size: 16px;
+          }
+          .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+          }
+          @media print {
+            body {
+              padding: 0;
+              margin: 0;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Bordereau de Remise de Chèques</h1>
+          <h2>${currentBordereau.id}</h2>
+        </div>
+        
+        <div class="bordereau-info">
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Destination:</span> ${currentBordereau.destination}
+            </div>
+            <div class="info-item">
+              <span class="info-label">Utilisateur:</span> ${currentBordereau.user}
+            </div>
+            <div class="info-item">
+              <span class="info-label">Date de création:</span> ${formattedCreatedDate}
+            </div>
+            <div class="info-item">
+              <span class="info-label">Date d'envoi:</span> ${formattedSendingDate}
+            </div>
+          </div>
+        </div>
+        
+        ${Array.from({ length: pageCount }).map((_, pageIndex) => {
+          const startIdx = pageIndex * chequesPerPage;
+          const endIdx = Math.min(startIdx + chequesPerPage, cheques.length);
+          const pageItems = cheques.slice(startIdx, endIdx);
+          
+          return `
+            ${pageIndex > 0 ? '<div class="page-break"></div>' : ''}
+            ${pageIndex > 0 ? `<div class="page-header">Bordereau ${currentBordereau.id} - Page ${pageIndex + 1}/${pageCount}</div>` : ''}
+            
+            <table>
+              <thead>
+                <tr>
+                  <th class="id-col">ID</th>
+                  <th class="emetteur-col">Nom de l'émetteur</th>
+                  <th class="code-col">N° Chèque</th>
+                  <th class="montant-col">Montant</th>
+                  <th class="facture-col">N° Facture</th>
+                  <th class="client-col">Client</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${pageItems.map(cheque => `
+                  <tr>
+                    <td>${cheque.id}</td>
+                    <td>${cheque.emetteur || ''}</td>
+                    <td>${cheque.numCheque || ''}</td>
+                    <td>${typeof cheque.montant === 'number' ? cheque.montant.toFixed(2) + ' D.A' : '0.00 D.A'}</td>
+                    <td>${cheque.numFacture || ''}</td>
+                    <td>${cheque.client || ''}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            
+            ${pageIndex === pageCount - 1 ? `
+              <div class="total">
+                Total: ${totalMontant.toFixed(2)} D.A
+              </div>
+            ` : ''}
+          `;
+        }).join('')}
+        
+        <div class="footer">
+          Document généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}
+        </div>
+      </body>
+      </html>
+    `;
+    
+    // Write the content to the new window and print
+    printWindow.document.open();
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    
+    // Wait for content to load before printing
+    printWindow.onload = function() {
+      printWindow.print();
+      // printWindow.close(); // Uncomment to automatically close after printing
+    };
+  }
 
   return (
     <div className="space-y-6">
@@ -504,6 +694,10 @@ const BordereauManagement = forwardRef<BordereauManagementRef, BordereauManageme
               <Button size="sm" onClick={saveBordereau} variant="outline">
                 <Save className="h-4 w-4 mr-2" />
                 {isEditing ? "Mettre à jour le Bordereau" : "Enregistrer le Bordereau"}
+              </Button>
+              <Button size="sm" onClick={printBordereau} variant="outline" className="bg-blue-600 hover:bg-blue-700 text-white">
+                <Printer className="h-4 w-4 mr-2" />
+                Imprimer
               </Button>
             </>
           )}
