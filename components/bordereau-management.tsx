@@ -42,6 +42,15 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
   const [sendingDate, setSendingDate] = useState("")
   const [bordereauIdToOpen, setBordereauIdToOpen] = useState("")
   const [isEditing, setIsEditing] = useState(false)
+  
+  // Function to check if a bordereau has already been created today
+  const hasBordereauForToday = () => {
+    const today = new Date().toISOString().split("T")[0] // Format: YYYY-MM-DD
+    const savedBordereaux = JSON.parse(localStorage.getItem("bordereaux") || "[]")
+    
+    // Check if any bordereau was created today
+    return savedBordereaux.some((b: Bordereau) => b.createdDate === today)
+  }
 
   const createNewBordereau = () => {
     if (!destination || !sendingDate) {
@@ -360,9 +369,32 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
         <h2 className="text-2xl font-bold">Gestion des Bordereaux</h2>
         <div className="flex space-x-2">
           {/* Dialog for creating a new bordereau */}
-          <Dialog open={isNewBordereauOpen} onOpenChange={setIsNewBordereauOpen}>
+          <Dialog open={isNewBordereauOpen} onOpenChange={(open) => {
+            // Only allow opening if no bordereau exists for today
+            if (open && hasBordereauForToday()) {
+              toast({
+                title: "Bordereau déjà créé",
+                description: "Un bordereau a déjà été créé aujourd'hui. Vous ne pouvez créer qu'un seul bordereau par jour.",
+                variant: "destructive",
+              })
+            } else {
+              setIsNewBordereauOpen(open)
+            }
+          }}>
             <DialogTrigger asChild>
-              <Button variant="outline" onClick={() => setIsNewBordereauOpen(true)} className="hidden">
+              <Button variant="outline" onClick={(e) => {
+                // Check if a bordereau already exists for today
+                if (hasBordereauForToday()) {
+                  e.preventDefault() // Prevent dialog from opening
+                  toast({
+                    title: "Bordereau déjà créé",
+                    description: "Un bordereau a déjà été créé aujourd'hui. Vous ne pouvez créer qu'un seul bordereau par jour.",
+                    variant: "destructive",
+                  })
+                } else {
+                  setIsNewBordereauOpen(true)
+                }
+              }} className="hidden">
                 Créer un Nouveau Bordereau
               </Button>
             </DialogTrigger>
@@ -569,9 +601,30 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
               <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun Bordereau Sélectionné</h3>
               <p className="text-gray-500 mb-4">Créez un nouveau bordereau ou ouvrez un bordereau existant</p>
               <div className="flex justify-center space-x-4">
-                <Dialog open={isNewBordereauOpen} onOpenChange={setIsNewBordereauOpen}>
+                <Dialog open={isNewBordereauOpen} onOpenChange={(open) => {
+                  // Only allow opening if no bordereau exists for today
+                  if (open && hasBordereauForToday()) {
+                    toast({
+                      title: "Bordereau déjà créé",
+                      description: "Un bordereau a déjà été créé aujourd'hui. Vous ne pouvez créer qu'un seul bordereau par jour.",
+                      variant: "destructive",
+                    })
+                  } else {
+                    setIsNewBordereauOpen(open)
+                  }
+                }}>
                   <DialogTrigger asChild>
-                    <Button>
+                    <Button onClick={(e) => {
+                      // Check if a bordereau already exists for today
+                      if (hasBordereauForToday()) {
+                        e.preventDefault() // Prevent dialog from opening
+                        toast({
+                          title: "Bordereau déjà créé",
+                          description: "Un bordereau a déjà été créé aujourd'hui. Vous ne pouvez créer qu'un seul bordereau par jour.",
+                          variant: "destructive",
+                        })
+                      }
+                    }}>
                       <Plus className="h-4 w-4 mr-2" />
                       Créer un Nouveau Bordereau
                     </Button>
