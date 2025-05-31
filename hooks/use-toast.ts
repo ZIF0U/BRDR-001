@@ -8,7 +8,7 @@ import type {
   ToastProps,
 } from "@/components/ui/toast"
 
-const TOAST_LIMIT = 5
+const TOAST_LIMIT = 2
 const TOAST_REMOVE_DELAY = 5000
 
 type ToasterToast = ToastProps & {
@@ -151,6 +151,14 @@ function toast({ ...props }: Toast) {
       toast: { ...props, id },
     })
   const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id })
+
+  // Check if we need to dismiss older toasts before adding a new one
+  if (memoryState.toasts.length >= TOAST_LIMIT) {
+    // Get the oldest toast (last in the array since new toasts are added at the beginning)
+    const oldestToast = memoryState.toasts[memoryState.toasts.length - 1];
+    // Dismiss the oldest toast
+    dispatch({ type: "DISMISS_TOAST", toastId: oldestToast.id });
+  }
 
   dispatch({
     type: "ADD_TOAST",
