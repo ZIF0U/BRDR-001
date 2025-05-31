@@ -41,6 +41,7 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
   const [destination, setDestination] = useState("")
   const [sendingDate, setSendingDate] = useState("")
   const [bordereauIdToOpen, setBordereauIdToOpen] = useState("")
+  const [selectedDate, setSelectedDate] = useState("")
   const [isEditing, setIsEditing] = useState(false)
   
   // Function to check if a bordereau has already been created today
@@ -236,10 +237,10 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
   }
 
   const openBordereau = () => {
-    if (!bordereauIdToOpen.trim()) {
+    if (!selectedDate) {
       toast({
         title: "Erreur",
-        description: "Veuillez saisir l'identifiant du bordereau",
+        description: "Veuillez sélectionner une date",
         variant: "destructive",
       })
       return
@@ -247,12 +248,12 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
 
     // Load from localStorage (in a real app, this would be loaded from SQLite database)
     const savedBordereaux = JSON.parse(localStorage.getItem("bordereaux") || "[]")
-    const bordereau = savedBordereaux.find((b: Bordereau) => b.id === bordereauIdToOpen.trim())
+    const bordereau = savedBordereaux.find((b: Bordereau) => b.createdDate === selectedDate)
 
     if (!bordereau) {
       toast({
         title: "Erreur",
-        description: "Bordereau non trouvé",
+        description: "Aucun bordereau trouvé pour cette date",
         variant: "destructive",
       })
       return
@@ -281,7 +282,7 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
     
     setCurrentBordereau(processedBordereau)
     setIsOpenBordereauOpen(false)
-    setBordereauIdToOpen("")
+    setSelectedDate("")
     setIsEditing(true)
 
     toast({
@@ -436,12 +437,12 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="bordereauId">Identifiant du Bordereau</Label>
+                  <Label htmlFor="selectedDate">Date du Bordereau</Label>
                   <Input
-                    id="bordereauId"
-                    value={bordereauIdToOpen}
-                    onChange={(e) => setBordereauIdToOpen(e.target.value)}
-                    placeholder="Saisir l'identifiant du bordereau (ex: BDR-1234567890)"
+                    id="selectedDate"
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
                   />
                 </div>
                 <div className="flex justify-end mt-4">
