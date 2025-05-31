@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -31,10 +31,11 @@ interface Bordereau {
 }
 
 interface BordereauManagementProps {
-  currentUser: string
+  currentUser: string;
+  onUnsavedChanges?: (hasUnsavedChanges: boolean) => void;
 }
 
-export default function BordereauManagement({ currentUser }: BordereauManagementProps) {
+export default function BordereauManagement({ currentUser, onUnsavedChanges }: BordereauManagementProps) {
   const [currentBordereau, setCurrentBordereau] = useState<Bordereau | null>(null)
   const [isNewBordereauOpen, setIsNewBordereauOpen] = useState(false)
   const [isOpenBordereauOpen, setIsOpenBordereauOpen] = useState(false)
@@ -43,6 +44,28 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
   const [bordereauIdToOpen, setBordereauIdToOpen] = useState("")
   const [selectedDate, setSelectedDate] = useState("")
   const [isEditing, setIsEditing] = useState(false)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  
+  // Function to check if there are unsaved changes
+  const checkUnsavedChanges = () => {
+    // If there's a current bordereau and it has cheques with editing mode on
+    // or if we're in editing mode, there are unsaved changes
+    const hasEditingCheques = currentBordereau?.cheques.some(cheque => cheque.editing) || false;
+    const hasChanges = (currentBordereau !== null && (hasEditingCheques || isEditing));
+    setHasUnsavedChanges(hasChanges);
+    
+    // Notify parent component if callback is provided
+    if (onUnsavedChanges) {
+      onUnsavedChanges(hasChanges);
+    }
+    
+    return hasChanges;
+  }
+  
+  // Check for unsaved changes whenever relevant state changes
+  useEffect(() => {
+    checkUnsavedChanges();
+  }, [currentBordereau, isEditing]);
   
   // Function to check if a bordereau has already been created today
   const hasBordereauForToday = () => {
@@ -354,6 +377,12 @@ export default function BordereauManagement({ currentUser }: BordereauManagement
 
     setCurrentBordereau(null)
     setIsEditing(false)
+    setHasUnsavedChanges(false)
+    
+    // Notify parent component that there are no more unsaved changes
+    if (onUnsavedChanges) {
+      onUnsavedChanges(false);
+    }
   }
 
   const totalMontant = currentBordereau && Array.isArray(currentBordereau.cheques) 
