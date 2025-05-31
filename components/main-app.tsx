@@ -3,7 +3,7 @@
 import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import BordereauManagement from "@/components/bordereau-management"
+import BordereauManagement, { BordereauManagementRef } from "@/components/bordereau-management"
 import HistoryInterface from "@/components/history-interface"
 import { LogOut, FileText, History, Bell } from "lucide-react"
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
@@ -48,7 +48,7 @@ export default function MainApp({ currentUser, onLogout }: MainAppProps) {
   };
   
   // Reference to the BordereauManagement component
-  const bordereauRef = useRef<{ saveBordereau?: () => void }>(null);
+  const bordereauRef = useRef<BordereauManagementRef>(null);
   
   // Handle confirmation dialog actions
   const handleConfirm = () => {
@@ -68,9 +68,9 @@ export default function MainApp({ currentUser, onLogout }: MainAppProps) {
   // Handle save and continue
   const handleSaveAndContinue = () => {
     // First save the bordereau
-    if (activeTab === "management") {
+    if (activeTab === "management" && bordereauRef.current) {
       // Call the saveBordereau method on the BordereauManagement component
-      // This will be implemented in the next step
+      bordereauRef.current.saveBordereau();
     }
     
     setShowConfirmDialog(false);
@@ -130,6 +130,7 @@ export default function MainApp({ currentUser, onLogout }: MainAppProps) {
 
           <TabsContent value="management" className="mt-6">
             <BordereauManagement 
+              ref={bordereauRef}
               currentUser={currentUser} 
               onUnsavedChanges={setHasUnsavedChanges} 
             />

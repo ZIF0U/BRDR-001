@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, forwardRef, useImperativeHandle } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -35,7 +35,12 @@ interface BordereauManagementProps {
   onUnsavedChanges?: (hasUnsavedChanges: boolean) => void;
 }
 
-export default function BordereauManagement({ currentUser, onUnsavedChanges }: BordereauManagementProps) {
+export interface BordereauManagementRef {
+  saveBordereau: () => void;
+}
+
+const BordereauManagement = forwardRef<BordereauManagementRef, BordereauManagementProps>(
+  ({ currentUser, onUnsavedChanges }, ref) => {
   const [currentBordereau, setCurrentBordereau] = useState<Bordereau | null>(null)
   const [isNewBordereauOpen, setIsNewBordereauOpen] = useState(false)
   const [isOpenBordereauOpen, setIsOpenBordereauOpen] = useState(false)
@@ -66,6 +71,17 @@ export default function BordereauManagement({ currentUser, onUnsavedChanges }: B
   useEffect(() => {
     checkUnsavedChanges();
   }, [currentBordereau, isEditing]);
+  
+  // Expose methods to parent component
+  useImperativeHandle(ref, () => ({
+    saveBordereau: () => {
+      if (currentBordereau) {
+        saveBordereau();
+        return true;
+      }
+      return false;
+    }
+  }));
   
   // Function to check if a bordereau has already been created today
   const hasBordereauForToday = () => {
@@ -229,11 +245,10 @@ export default function BordereauManagement({ currentUser, onUnsavedChanges }: B
     if (!chequeToConfirm) return
     
     // Check if required fields are filled
-    if (!chequeToConfirm.emetteur || !chequeToConfirm.codeBanque || 
-        !chequeToConfirm.numCheque || chequeToConfirm.montant <= 0) {
+    if (!chequeToConfirm.emetteur || !chequeToConfirm.numCheque || chequeToConfirm.montant <= 0) {
       toast({
         title: "Validation échouée",
-        description: "Veuillez remplir tous les champs obligatoires (émetteur, code banque, numéro de chèque, montant)",
+        description: "Veuillez remplir tous les champs obligatoires (Nom de l'émetteur, N° Chèque, Montant)",
         variant: "destructive",
       })
       return
@@ -512,10 +527,10 @@ export default function BordereauManagement({ currentUser, onUnsavedChanges }: B
                 <TableHeader>
                   <TableRow>
                     <TableHead>ID</TableHead>
-                    <TableHead>Nom de l'émetteur</TableHead>
+                    <TableHead>Nom de l'émetteur *</TableHead>
                     <TableHead>Code Banque</TableHead>
-                    <TableHead>N° Chèque</TableHead>
-                    <TableHead>Montant</TableHead>
+                    <TableHead>N° Chèque *</TableHead>
+                    <TableHead>Montant *</TableHead>
                     <TableHead>N° Facture</TableHead>
                     <TableHead>Client</TableHead>
                     <TableHead>Actions</TableHead>
@@ -610,13 +625,17 @@ export default function BordereauManagement({ currentUser, onUnsavedChanges }: B
               </Table>
 
               {currentBordereau.cheques.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  Aucun chèque ajouté. Cliquez sur le bouton + pour ajouter un nouveau chèque.
+                <div className="space-y-4">
+                  <div className="text-center py-8 text-gray-500">
+                    Aucun chèque ajouté. Cliquez sur le bouton + pour ajouter un nouveau chèque.
+                  </div>
+                  <div className="text-sm text-gray-500">* Champs obligatoires</div>
                 </div>
               )}
 
               {currentBordereau.cheques.length > 0 && (
-                <div className="flex justify-end">
+                <div className="flex justify-between items-center">
+                  <div className="text-sm text-gray-500">* Champs obligatoires</div>
                   <div className="text-lg font-semibold">Total: {totalMontant}</div>
                 </div>
               )}
@@ -674,5 +693,7 @@ export default function BordereauManagement({ currentUser, onUnsavedChanges }: B
         </Card>
       )}
     </div>
-  )
-}
+  );
+});
+
+export default BordereauManagement;
